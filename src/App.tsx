@@ -3,6 +3,24 @@ import logo from './logo.svg';
 import './App.css';
 import products from './data/products.json';
 
+// TODO - Add logic
+// TODO - Add breakpoints
+// TODO - Be responsive mobile, table and desktop
+// TODO - Add extra functions
+// TODO - Add transitions
+// TODO - Load data from JSON file
+// TODO - Refactor into components
+// TODO - Use hooks if necessary: memo, usecallback, usememo, useeffect...
+// TODO - Add tests?
+// TODO - Test some edge cases (invalid inputs, empty shopping cart...)
+// TODO - Message after the purchase
+// TODO - HOST NETLIFY
+// TODO - remove unecessary files
+// TODO - As a customer I want to be able to select the quantity of products with a slider
+// TODO - As a customer I want to be able to see the quantity selected with the slider also in the input field
+// TODO - As a customer I want to see the new total for the selected quantity only after a few milliseconds
+// TODO - Create the README.MD
+
 function Table() {
   return (
 
