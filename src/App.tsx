@@ -1,100 +1,66 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import products from './data/products.json';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+interface Product {
+  "id": string;
+  "productName": string;
+  "maxAmount": number;
+  "taxRate": number;
+  "price": number;
+}
 
-// TODO - Add logic
-// TODO - Add breakpoints
-// TODO - Be responsive mobile, table and desktop
-// TODO - Add extra functions
-// TODO - Add transitions
-// TODO - Load data from JSON file
-// TODO - Refactor into components
-// TODO - Use hooks if necessary: memo, usecallback, usememo, useeffect...
-// TODO - Add tests?
-// TODO - Test some edge cases (invalid inputs, empty shopping cart...)
-// TODO - Message after the purchase
-// TODO - HOST NETLIFY
-// TODO - remove unecessary files
-// TODO - As a customer I want to be able to select the quantity of products with a slider
-// TODO - As a customer I want to be able to see the quantity selected with the slider also in the input field
-// TODO - As a customer I want to see the new total for the selected quantity only after a few milliseconds
-// TODO - Create the README.MD
+function Table({ shoppingCart }: { shoppingCart: ShoppingCartProduct[] }) {
 
-function Table() {
+  const total = React.useMemo(() => shoppingCart.reduce((previousValue, currentValue) => previousValue + currentValue.total, 0), [shoppingCart]);
+
   return (
-
-    <div className="overflow-x-auto relative">
-      <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+    <div className="overflow-x-auto relative mx-auto max-h-128 max-w-full">
+      <table className="w-full text-sm text-left text-gray-500 text-gray-400">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-50 bg-gray-700 text-gray-400">
           <tr>
-            <th scope="col" className="py-3 px-6">
+            <th scope="col" className="text-white py-3 px-6">
               Product name
             </th>
-            <th scope="col" className="py-3 px-6">
-              Color
+            <th scope="col" className="text-white hidden sm:block py-3 px-6">
+              Tax Rate
             </th>
-            <th scope="col" className="py-3 px-6">
-              Category
+            <th scope="col" className="text-white py-3 px-6">
+              Quantity
             </th>
-            <th scope="col" className="py-3 px-6">
+            <th scope="col" className="text-white py-3 px-6">
               Price
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-              Apple MacBook Pro 17"
-            </th>
-            <td className="py-4 px-6">
-              Sliver
-            </td>
-            <td className="py-4 px-6">
-              Laptop
-            </td>
-            <td className="py-4 px-6">
-              $2999
-            </td>
-          </tr>
-          <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-              Microsoft Surface Pro
-            </th>
-            <td className="py-4 px-6">
-              White
-            </td>
-            <td className="py-4 px-6">
-              Laptop PC
-            </td>
-            <td className="py-4 px-6">
-              $1999
-            </td>
-          </tr>
-          <tr className="bg-white dark:bg-gray-800">
-            <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-              Magic Mouse 2
-            </th>
-            <td className="py-4 px-6">
-              Black
-            </td>
-            <td className="py-4 px-6">
-              Accessories
-            </td>
-            <td className="py-4 px-6">
-              $99
-            </td>
-          </tr>
+          {shoppingCart.map(item => (
+            <tr className="bg-white border-b bg-gray-800 border-gray-700">
+              <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap text-white">
+                {item.productName}
+              </th>
+              <td className="hidden sm:block py-4 px-6">
+                {item.taxRate}
+              </td>
+              <td className="py-4 px-6">
+                {item.quantity}
+              </td>
+              <td className="py-4 px-6">
+                ${item.total}
+              </td>
+            </tr>
+          ))}
         </tbody>
         <tfoot>
-          <tr className="bg-white dark:bg-gray-800">
-            <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">  </th>
-            <td className="py-4 px-6"></td>
+          <tr className="bg-white bg-gray-800">
+            <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap text-white">  </th>
+            <td className="hidden sm:block py-4 px-6"></td>
             <td className="py-4 px-6">
               Sum
             </td>
             <td className="py-4 px-6">
-              $99
+              ${Number.parseFloat(`${total}`).toFixed(2)}
             </td>
           </tr>
         </tfoot>
@@ -103,44 +69,95 @@ function Table() {
 
   )
 }
+interface ShoppingCartProduct extends Product {
+  quantity: number;
+  total: number;
+}
 
 function App() {
+  const [product, setProduct] = React.useState<undefined | Product>();
+  const [quantity, setQuantity] = React.useState<number>(1);
+  const [shoppingCart, setShoppingCart] = React.useState<ShoppingCartProduct[]>([]);
+
+  const onSelectProduct = (index: string) => {
+    const productIndex = +index;
+    const selectedProduct = products[productIndex];
+
+    // Only update the selected product if it's not already selected
+    if (selectedProduct.id !== product?.id) {
+      setProduct(products[productIndex]);
+      setQuantity(1);
+    }
+  }
+
+  const addToShoppingCart = () => {
+    if (product) {
+      setShoppingCart([...shoppingCart, ...[{ ...product, quantity: quantity, total: quantity * product.price }]])
+      setProduct(undefined);
+      setQuantity(1);
+    }
+  };
+
+  const onBuy = () => {
+    setShoppingCart([]);
+    toast(' 🚀 Congratulations, you have successfully bought your shopping cart.', {
+      type: 'success'
+    })
+
+  }
+
+  const isShoppingCartEmpty = React.useMemo(() => shoppingCart.length === 0, [shoppingCart]);
+  const shoppingCartDisabledStyle = React.useMemo(() => isShoppingCartEmpty && 'bg-gray-400 text-gray-600', [isShoppingCartEmpty]);
+  const undefinedProductDisabledStyle = React.useMemo(() => product === undefined && 'bg-gray-400 text-gray-600', [product]);
+
   return (
-    <div className="App bg-yellow-600 h-screen">
-      <div className="flex flex-row">
-        <div>
-          <label htmlFor="countries" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Select an option</label>
-          <select id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-            <option selected>Select a Product</option>
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="FR">France</option>
-            <option value="DE">Germany</option>
-          </select>
+    <div className="bg-gray-600">
+      <div className='main grid sm:grid-rows-3'>
+        <div className="grid sm:grid-cols-3 gap-x-10 self-center mx-10 sm:mx-0">
+          <div className='grid self-center'>
+            <select id="products" onChange={(e) => onSelectProduct(e.currentTarget.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500 text-white">
+              <option selected>Select a Product 📦</option>
+              {products.map((item, index) => <option value={index} selected={product?.id === item.id}>{item.productName}</option>)}
+            </select>
+          </div>
+
+          <div className='mt-10 sm:mt-0'>
+            <label htmlFor="quantity" className="block mb-2 text-sm font-medium text-gray-900 text-gray-300">Quantity</label>
+            <input className='mx-auto w-full' disabled={product === undefined} type="range" min={1} step={1} value={quantity} onChange={(e) => setQuantity(+e.target.value)} max={product?.maxAmount} />
+            <div className={`grid ${product && 'grid-cols-4'}`}>
+              <input type="number" value={quantity} id="quantity" disabled={product === undefined} onChange={(e) => setQuantity(+e.target.value)} className="mx-auto w-16 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="" required />
+              {product && (
+                <div className='grid grid-cols-6 col-span-3'>
+                  <span className='text-white text-center p-0 m-0 pt-1 font-bold'>x</span>
+                  <span className='text-white text-center p-0 m-0 pt-1 font-bold col-span-2'>{product?.price}</span>
+                  <span className='text-white text-center p-0 m-0 pt-1 font-bold'> = </span>
+                  <span className='text-white text-center p-0 m-0 pt-1 font-bold col-span-2'>{parseFloat(`${+product?.price * quantity}`).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className='grid self-center mt-10 sm:mt-0'>
+            <button type="button" disabled={product === undefined} onClick={addToShoppingCart} className={`mx-auto w-44 h-12 px-4 rounded-full text-white bg-blue-400 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-md px-5 py-2.5 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-blue-800 ${undefinedProductDisabledStyle}`}>Add to Cart</button>
+          </div>
         </div>
 
-        <div className="slidecontainer">
-          <input type="range" min={1} step={1} onChange={(e) => console.log(e.target.value)} max="100" className="slider" id="myRange" />
+        {!isShoppingCartEmpty && (
+          <div className="flex flex-row mx-auto self-center md:max-h-48 max-h-64 -mt-10 sm:mt-0">
+            <Table shoppingCart={shoppingCart} />
+          </div>
+          )
+        }
+
+        <div className="grid grid-cols-3 justify-between self-center">
+          <div className='grid self-center'>
+            <button type="button" onClick={() => setShoppingCart([])} disabled={isShoppingCartEmpty} className={`mx-auto rounded-full text-white bg-gray-100 font-medium rounded-lg text-md px-5 py-2.5 focus:outline-none ${shoppingCartDisabledStyle}`}>🗑</button>
+          </div>
+          <div />
+          <div className='grid self-center'>
+            <button type="button" onClick={onBuy} disabled={isShoppingCartEmpty} className={`mx-auto px-10 rounded-full text-white bg-blue-400 font-medium rounded-lg text-md px-5 py-2.5 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 ${shoppingCartDisabledStyle}`}>Buy</button>
+          </div>
         </div>
-        <div>
-          <label htmlFor="visitors" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Unique visitors (per month)</label>
-          <input type="number" value={100} id="visitors" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required />
-        </div>
-        <span>x</span>
-        <span>1,99</span>
-        <span> = </span>
-        <span>3,98</span>
-
-        <button type="button" className="rounded-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-md px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add to Cart</button>
-      </div>
-
-      <div className="flex flex-row">
-        <Table />
-      </div>
-
-      <div className="flex flex-row justify-between">
-      <button type="button" className="rounded-full text-white bg-gray-100 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-md px-5 py-2.5 mr-2 mb-2 focus:outline-none dark:focus:ring-blue-800">🗑</button>
-      <button type="button" className="px-10 rounded-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-md px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buy</button>
       </div>
     </div>
   );
