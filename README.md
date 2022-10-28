@@ -7,3 +7,9 @@ Make sure that you have installed: v16.14.2
 
 1. `npm install`
 2. `npm run start`
+
+## Final result:
+
+![Desktop](/src/images/desktop_2.png)
+![Desktop with notification](/src/images/desktop_1.png)
+![Mobile version](/src/images/mobile.png)
